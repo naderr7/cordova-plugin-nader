@@ -16,7 +16,7 @@
                 <param name="ios-package" value="naderPlugin" onload="true" />
             </feature>
         </config-file>         
-        <source-file src="src/ios/libNaderr.a" framework="true"/>
+        <source-file src="src/ios/libepos2.a" framework="true"/>
         <header-file src="src/ios/ePOS.h" framework="true"/>
         <source-file src="src/ios/naderr.h" />
         <source-file src="src/ios/naderr.m" />
