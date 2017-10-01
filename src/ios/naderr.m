@@ -14,48 +14,60 @@
  * Sends the printing content to the printer controller and opens them.
  *
  */
-
+  
 - (void) getAvailablePrinters:(CDVInvokedUrlCommand*)command
 {
-    int find_printers_status = EPSONIO_OC_SUCCESS;
-    find_printers_status = [EpsonIoFinder start:EPSONIO_OC_DEVTYPE_BLUETOOTH FindOption:nil];
+    int result = EPOS2_SUCCESS;
+    Epos2FilterOption *filterOption = nil;
+    filterOption = [[Epos2FilterOption alloc] init];
+    filterOption.porttype = EPOS2_PORTTYPE_ALL;
+    filterOption.broadcast = @"255.255.255.255"
+    filterOption.deviceModel = EPOS2_MODEL_ALL;
+    filterOption.deviceType = EPOS2_TYPE_ALL;
     
-    [self sendError:find_printers_status textForShow:@"error during printer search" command:command];
+    result = [Epos2Discovery start:filterOption Delegate:self];
     
-    int get_printers_list_status = EPSONIO_OC_SUCCESS;
-    
-    NSArray *printerList_ = [[NSArray alloc]initWithArray:
-                             [EpsonIoFinder getDeviceInfoList:&get_printers_list_status
-                                            FilterOption:EPSONIO_OC_PARAM_DEFAULT]];
-    
-    [EpsonIoFinder stop];
-    
-    if ( [printerList_ count] < 1 ) {
-        [self sendError:@"printers not found" command:command];
-    } else {
-        
-        NSMutableArray *listForSend = [[NSMutableArray alloc] init];
-        
-        for (int i = 0; i < [printerList_ count]; i++) {
-            [listForSend addObject:[[printerList_ objectAtIndex:i] printerName]];
-        }
-        
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                                         messageAsArray:listForSend];
-        
-        [self.commandDelegate sendPluginResult:pluginResult
-                              callbackId:command.callbackId];
+    if (result != EPOS2_CODE_SUCCESS) {
+    //Displays error messages
+         [self sendError:@"printers not found" command:command];
     }
+    [Epos2Discovery stop];
 }
+
+- (void) onDiscovery:(Epos2DeviceInfo *)deviceInfo
+{
+     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK  messageAsArray:deviceInfo];
+     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 - (void) print:(CDVInvokedUrlCommand*)command
 {
     
-    NSArray * arguments = [command arguments];
-    NSString *contentForPrint = [arguments objectAtIndex:0];
-    NSString *chosenPrinterName = [arguments objectAtIndex:1];
-    
+   // NSArray * arguments = [command arguments];
+   // NSString *contentForPrint = [arguments objectAtIndex:0];
+   // NSString *chosenPrinterName = [arguments objectAtIndex:1];
+    /*
     int find_printers_status = EPSONIO_OC_SUCCESS;
     find_printers_status = [EpsonIoFinder start:EPSONIO_OC_DEVTYPE_BLUETOOTH FindOption:nil];
     
@@ -137,12 +149,27 @@
     
     [self.commandDelegate sendPluginResult:pluginResult
                           callbackId:command.callbackId];
-    
+    */
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 - (void) sendError:(int)errorStatus textForShow:(NSString*)text command:(CDVInvokedUrlCommand*)command
 {
-    if (errorStatus != EPOS_OC_SUCCESS) {
+    if (errorStatus != EPOS2_SUCCESS) {
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                                          messageAsString:[NSString stringWithFormat:@"%@%i", text, errorStatus]];
         
@@ -150,6 +177,13 @@
                               callbackId:command.callbackId];
     }
 }
+
+
+
+
+
+
+
 
 - (void) sendError:(NSString*)text command:(CDVInvokedUrlCommand*)command
 {
